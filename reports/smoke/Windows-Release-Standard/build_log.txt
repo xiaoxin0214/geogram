@@ -292,6 +292,7 @@ MSBuild version 17.6.3+07e294721 for .NET Framework
   simple_mesh_application.cpp
   status_bar.cpp
   text_editor.cpp
+  user_callback_android.cpp
   lua_glup.cpp
   lua_imgui.cpp
   lua_simple_application.cpp
