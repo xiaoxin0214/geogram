@@ -541,8 +541,8 @@ MSBuild version 17.6.3+07e294721 for .NET Framework
   dsdot.c
   dspmv.c
   dspr.c
-  dswap.c
   dspr2.c
+  dswap.c
   dsymm.c
   dsymv.c
   dsyr.c
