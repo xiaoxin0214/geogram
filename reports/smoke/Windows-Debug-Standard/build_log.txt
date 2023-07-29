@@ -1,6 +1,6 @@
 MSBuild version 17.6.3+07e294721 for .NET Framework
 
-  Checking Build System
+  1>Checking Build System
   Building Custom Rule D:/a/geogram/geogram/src/lib/geogram_gfx/third_party/CMakeLists.txt
   glad.c
   TextEditor.cpp
