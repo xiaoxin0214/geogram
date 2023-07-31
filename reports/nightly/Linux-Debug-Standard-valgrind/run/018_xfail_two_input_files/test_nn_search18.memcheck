@@ -12,8 +12,8 @@
   <line>Command: /home/runner/work/geogram/geogram/build/Linux64-gcc-dynamic-Debug/bin/test_nn_search /home/runner/work/geogram/geogram/tests/data/RVD/grid1.obj /home/runner/work/geogram/geogram/tests/data/RVD/grid2.obj</line>
 </preamble>
 
-<pid>13146</pid>
-<ppid>13011</ppid>
+<pid>13059</pid>
+<ppid>12915</ppid>
 <tool>memcheck</tool>
 
 <args>
@@ -36,13 +36,13 @@
 
 <status>
   <state>RUNNING</state>
-  <time>00:00:00:00.045 </time>
+  <time>00:00:00:00.043 </time>
 </status>
 
 
 <status>
   <state>FINISHED</state>
-  <time>00:00:00:02.167 </time>
+  <time>00:00:00:02.117 </time>
 </status>
 
 <errorcounts>
