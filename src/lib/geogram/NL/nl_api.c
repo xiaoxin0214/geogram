@@ -438,8 +438,8 @@ void  nlSetFunction(NLContext context, NLenum pname, NLfunc param) {
 	NLContextStruct* nlCurrentContext = (NLContextStruct*)context;
     switch(pname) {
     case NL_FUNC_SOLVER:
-        nlCurrentContext->solver_func = (NLSolverFunc)(param);
-        nlCurrentContext->solver = NL_SOLVER_USER;	
+        //nlCurrentContext->solver_func = (NLSolverFunc)(param);
+        //nlCurrentContext->solver = NL_SOLVER_USER;	
         break;
     case NL_FUNC_MATRIX:
 	nlDeleteMatrix(nlCurrentContext->M);
@@ -1042,7 +1042,7 @@ NLboolean nlSolve(NLContext context) {
     nlCurrentContext->start_time = nlCurrentTime();
     nlCurrentContext->elapsed_time = 0.0;
     nlCurrentContext->flops = 0;    
-    result = nlCurrentContext->solver_func();
+    result = nlCurrentContext->solver_func(context);
     if(!nlCurrentContext->no_variables_indirection) {
 	nlVectorToVariables(context);
     }
