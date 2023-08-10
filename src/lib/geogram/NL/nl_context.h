@@ -383,7 +383,7 @@ typedef struct {
 /**
  * \brief Pointer to the current context.
  */
-extern NLContextStruct* nlCurrentContext;
+//extern NLContextStruct* nlCurrentContext;
 
 /**
  * \brief Makes sure that the finite state automaton is
@@ -392,7 +392,7 @@ extern NLContextStruct* nlCurrentContext;
  *  then the program is aborted with an error message.
  * \param[in] state the expected state.
  */
-void nlCheckState(NLenum state);
+void nlCheckState(NLContext context,NLenum state);
 
 /**
  * \brief Implements a transition of the finite state automaton.
@@ -402,7 +402,7 @@ void nlCheckState(NLenum state);
  * \param[in] from_state the expected current state
  * \param[in] to_state the new state
  */
-void nlTransition(NLenum from_state, NLenum to_state);
+void nlTransition(NLContext context,NLenum from_state, NLenum to_state);
 
 /**
  * \brief Implements the default solver
@@ -411,6 +411,6 @@ void nlTransition(NLenum from_state, NLenum to_state);
  * \retval NL_TRUE if solve was successful
  * \retval NL_FALSE otherwise
  */
-NLboolean nlDefaultSolver(void);
+NLboolean nlDefaultSolver(NLContext context);
 
 #endif

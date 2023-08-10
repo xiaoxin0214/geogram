@@ -190,26 +190,26 @@ namespace {
         }
 
         // Step 1: Setup the OpenNL solver
-        nlNewContext();
-        nlSolverParameteri(NL_NB_VARIABLES, NLint(2*M.facets.nb()));
-        nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
+		NLContext context = nlNewContext();
+        nlSolverParameteri(context, NL_NB_VARIABLES, NLint(2*M.facets.nb()));
+        nlSolverParameteri(context, NL_LEAST_SQUARES, NL_TRUE);
 #ifdef GEO_DEBUG        
-        nlEnable(NL_VERBOSE);
+        nlEnable(context, NL_VERBOSE);
 #endif        
-        nlEnable(NL_NORMALIZE_ROWS);
+        nlEnable(context, NL_NORMALIZE_ROWS);
 
         // Step 2: setup the variables
-        nlBegin(NL_SYSTEM);
+        nlBegin(context, NL_SYSTEM);
         for(index_t f: M.facets) {
-            nlSetVariable(2*f, sincos_alpha[2*f]);
-            nlSetVariable(2*f+1, sincos_alpha[2*f+1]);
+            nlSetVariable(context, 2*f, sincos_alpha[2*f]);
+            nlSetVariable(context, 2*f+1, sincos_alpha[2*f+1]);
             if(locked.size() != 0 && locked[f]) {
-                nlLockVariable(2*f);
-                nlLockVariable(2*f+1);
+                nlLockVariable(context, 2*f);
+                nlLockVariable(context, 2*f+1);
             }
         }
 
-        nlBegin(NL_MATRIX);
+        nlBegin(context, NL_MATRIX);
 
         // Step 3: setup the PGP smoothness term
         for(index_t f1: M.facets) {
@@ -227,17 +227,17 @@ namespace {
                 double c = cos(angle); 
                 double s = sin(angle);                    
                 
-                nlBegin(NL_ROW);
-                nlCoefficient(2*f1,c);
-                nlCoefficient(2*f1+1,s);
-                nlCoefficient(2*f2,-1.0);                    
-                nlEnd(NL_ROW);
+                nlBegin(context, NL_ROW);
+                nlCoefficient(context, 2*f1,c);
+                nlCoefficient(context, 2*f1+1,s);
+                nlCoefficient(context, 2*f2,-1.0);
+                nlEnd(context, NL_ROW);
 
-                nlBegin(NL_ROW);
-                nlCoefficient(2*f1,-s);
-                nlCoefficient(2*f1+1,c);
-                nlCoefficient(2*f2+1,-1.0);                    
-                nlEnd(NL_ROW);
+                nlBegin(context, NL_ROW);
+                nlCoefficient(context, 2*f1,-s);
+                nlCoefficient(context, 2*f1+1,c);
+                nlCoefficient(context, 2*f2+1,-1.0);
+                nlEnd(context, NL_ROW);
             }
         }  
 
@@ -254,34 +254,34 @@ namespace {
                     continue;
                 }
 
-                nlRowScaling(fitting);
-                nlBegin(NL_ROW);
-                nlCoefficient(2*f,1.0);
-                nlRightHandSide(sincos_alpha[2*f]);
-                nlEnd(NL_ROW);
+                nlRowScaling(context, fitting);
+                nlBegin(context, NL_ROW);
+                nlCoefficient(context, 2*f,1.0);
+                nlRightHandSide(context, sincos_alpha[2*f]);
+                nlEnd(context, NL_ROW);
 
-                nlRowScaling(fitting);
-                nlBegin(NL_ROW);
-                nlCoefficient(2*f+1,1.0);
-                nlRightHandSide(sincos_alpha[2*f+1]);
-                nlEnd(NL_ROW);
+                nlRowScaling(context, fitting);
+                nlBegin(context, NL_ROW);
+                nlCoefficient(context, 2*f+1,1.0);
+                nlRightHandSide(context, sincos_alpha[2*f+1]);
+                nlEnd(context, NL_ROW);
             }
         }
 
-        nlEnd(NL_MATRIX);
-        nlEnd(NL_SYSTEM);
+        nlEnd(context, NL_MATRIX);
+        nlEnd(context, NL_SYSTEM);
 
         // Step 5: solve the linear system
-        nlSolve() ;
+        nlSolve(context) ;
 
         // Step 6: read the new values of the variables
         for(index_t f: M.facets) {
-            sincos_alpha[2*f] = nlGetVariable(2*f);
-            sincos_alpha[2*f+1] = nlGetVariable(2*f+1);
+            sincos_alpha[2*f] = nlGetVariable(context, 2*f);
+            sincos_alpha[2*f+1] = nlGetVariable(context, 2*f+1);
         }
 
         // Step 7: cleanup memory allocated by OpenNL 
-        nlDeleteContext(nlGetCurrent());
+        nlDeleteContext(context);
     } 
 
 

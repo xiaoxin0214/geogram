@@ -50,7 +50,7 @@
 # include "nl_amgcl.h"
 #endif
 
-NLContextStruct* nlCurrentContext = NULL;
+//NLContextStruct* nlCurrentContext = NULL;
 
 NLContext nlNewContext() {
     NLContextStruct* result     = NL_NEW(NLContextStruct);
@@ -72,9 +72,9 @@ NLContext nlNewContext() {
 
 void nlDeleteContext(NLContext context_in) {
     NLContextStruct* context = (NLContextStruct*)(context_in);
-    if(nlCurrentContext == context) {
-        nlCurrentContext = NULL;
-    }
+    //if(nlCurrentContext == context) {
+    //    nlCurrentContext = NULL;
+    //}
 
     nlDeleteMatrix(context->M);
     context->M = NULL;
@@ -106,29 +106,32 @@ void nlDeleteContext(NLContext context_in) {
 }
 
 void nlMakeCurrent(NLContext context) {
-    nlCurrentContext = (NLContextStruct*)(context);
+    //nlCurrentContext = (NLContextStruct*)(context);
 }
 
-NLContext nlGetCurrent() {
-    return nlCurrentContext;
-}
+//NLContext nlGetCurrent() {
+//    return nlCurrentContext;
+//}
 
 /************************************************************************/
 /* Finite state automaton   */
 
-void nlCheckState(NLenum state) {
+void nlCheckState(NLContext context,NLenum state) {
+	NLContextStruct* nlCurrentContext = (NLContextStruct*)context;
     nl_assert(nlCurrentContext->state == state);
 }
 
-void nlTransition(NLenum from_state, NLenum to_state) {
-    nlCheckState(from_state);
+void nlTransition(NLContext context,NLenum from_state, NLenum to_state) {
+	NLContextStruct* nlCurrentContext = (NLContextStruct*)context;
+    nlCheckState(nlCurrentContext,from_state);
     nlCurrentContext->state = to_state;
 }
 
 /************************************************************************/
 /* Preconditioner setup and default solver */
 
-static void nlSetupPreconditioner() {
+static void nlSetupPreconditioner(NLContext context) {
+	NLContextStruct* nlCurrentContext = (NLContextStruct*)context;
     /* Check compatibility between solver and preconditioner */
     if(
         nlCurrentContext->solver == NL_BICGSTAB && 
@@ -208,7 +211,8 @@ static void nlSetupPreconditioner() {
     }
 }
 
-static NLboolean nlSolveDirect() {
+static NLboolean nlSolveDirect(NLContext context) {
+	NLContextStruct* nlCurrentContext = (NLContextStruct*)context;
     NLdouble* b = nlCurrentContext->b;
     NLdouble* x = nlCurrentContext->x;
     NLuint n = nlCurrentContext->n;
@@ -235,7 +239,8 @@ static NLboolean nlSolveDirect() {
     return NL_TRUE;
 }
 
-static NLboolean nlSolveIterative() {
+static NLboolean nlSolveIterative(NLContext context) {
+	NLContextStruct* nlCurrentContext = (NLContextStruct*)context;
     NLboolean use_CUDA = NL_FALSE;
     NLdouble* b = nlCurrentContext->b;
     NLdouble* x = nlCurrentContext->x;
@@ -308,26 +313,27 @@ static NLboolean nlSolveIterative() {
     return NL_TRUE;
 }
 
-NLboolean nlDefaultSolver() {
+NLboolean nlDefaultSolver(NLContext context) {
+	NLContextStruct* nlCurrentContext = (NLContextStruct*)context;
     NLboolean result = NL_TRUE;
-    nlSetupPreconditioner();
+    nlSetupPreconditioner(nlCurrentContext);
     switch(nlCurrentContext->solver) {
 	case NL_CG:
 	case NL_BICGSTAB:
 	case NL_GMRES: {
-	    result = nlSolveIterative();
+	    result = nlSolveIterative(context);
 	} break;
 
 	case NL_SUPERLU_EXT: 
 	case NL_PERM_SUPERLU_EXT: 
 	case NL_SYMMETRIC_SUPERLU_EXT: 
 	case NL_CHOLMOD_EXT: {
-	    result = nlSolveDirect();
+	    result = nlSolveDirect(context);
 	} break;
 
         case NL_AMGCL_EXT: {
 #ifdef NL_WITH_AMGCL	    
-	    result = nlSolveAMGCL();
+	    result = nlSolveAMGCL(context);
 #else
 	    nlError("nlSolve()","AMGCL not supported");
 	    result = NL_FALSE;

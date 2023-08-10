@@ -742,7 +742,7 @@ typedef void* NLContext;
  * \brief Gets the current context
  * \return a handle to the current OpenNL context
  */
-    NLAPI NLContext NLAPIENTRY nlGetCurrent(void);
+    //NLAPI NLContext NLAPIENTRY nlGetCurrent(void);
 
 /**
  * \brief Initializes an OpenNL extension
@@ -789,7 +789,7 @@ typedef void* NLContext;
  *   is \ref NL_SSOR, then \p param is the relaxation parameter, 
  *   in (0.0 .. 2.0) excluded, for the SSOR preconditioner. 
  */
-    NLAPI void NLAPIENTRY nlSolverParameterd(NLenum pname, NLdouble param);
+    NLAPI void NLAPIENTRY nlSolverParameterd(NLContext context, NLenum pname, NLdouble param);
 
 /**
  * \brief Specifies an integer solver parameter
@@ -822,55 +822,55 @@ typedef void* NLContext;
  *  \see NL_SOLVER, NL_NB_VARIABLES, NL_LEAST_SQUARES, NL_MAX_ITERATIONS, 
  *    NL_SYMMETRIC, NL_INNER_ITERATIONS, NL_PRECONDITIONER
  */ 
-    NLAPI void NLAPIENTRY nlSolverParameteri(NLenum pname, NLint param);
+    NLAPI void NLAPIENTRY nlSolverParameteri(NLContext context, NLenum pname, NLint param);
 
 /**
  * \brief Gets the value of a boolean parameter
  * \param[in] pname the symbolic name of the parameter
  * \param[out] params a pointer to the obtained parameter value
  */
-    NLAPI void NLAPIENTRY nlGetBooleanv(NLenum pname, NLboolean* params);
+    NLAPI void NLAPIENTRY nlGetBooleanv(NLContext context, NLenum pname, NLboolean* params);
 
 /**
  * \brief Gets the value of a double-precision floating-point parameter
  * \param[in] pname the symbolic name of the parameter
  * \param[out] params a pointer to the obtained parameter value
  */
-    NLAPI void NLAPIENTRY nlGetDoublev(NLenum pname, NLdouble* params);
+    NLAPI void NLAPIENTRY nlGetDoublev(NLContext context, NLenum pname, NLdouble* params);
 
 /**
  * \brief Gets the value of an integer parameter
  * \param[in] pname the symbolic name of the parameter
  * \param[out] params a pointer to the obtained parameter value
  */
-    NLAPI void NLAPIENTRY nlGetIntegerv(NLenum pname, NLint* params);
+    NLAPI void NLAPIENTRY nlGetIntegerv(NLContext context, NLenum pname, NLint* params);
 
 /**
  * \brief Gets the value of a 64 bits integer parameter
  * \param[in] pname the symbolic name of the parameter
  * \param[out] params a pointer to the obtained parameter value
  */
-    NLAPI void NLAPIENTRY nlGetIntegervL(NLenum pname, NLlong* params);
+    NLAPI void NLAPIENTRY nlGetIntegervL(NLContext context, NLenum pname, NLlong* params);
 
     
 /**
  * \brief Sets a boolean parameter to NL_TRUE
  * \param[in] pname the symbolic name of the parameter
  */
-    NLAPI void NLAPIENTRY nlEnable(NLenum pname);
+    NLAPI void NLAPIENTRY nlEnable(NLContext context, NLenum pname);
 
 /**
  * \brief Sets a boolean parameter to NL_FALSE
  * \param[in] pname the symbolic name of the parameter
  */
-    NLAPI void NLAPIENTRY nlDisable(NLenum pname);
+    NLAPI void NLAPIENTRY nlDisable(NLContext context, NLenum pname);
 
 /**
  * \brief Tests a boolean parameter 
  * \param[in] pname the symbolic name of the parameter
  * \return the value of the boolean parameter
  */
-    NLAPI NLboolean nlIsEnabled(NLenum pname);
+    NLAPI NLboolean nlIsEnabled(NLContext context, NLenum pname);
 
 /**
  * @}
@@ -954,7 +954,7 @@ typedef void* NLContext;
  * \see nlGetFunction(), NL_FUNC_MATRIX, NL_FUNC_PRECONDITIONER, 
  *  NL_FUNC_PROGRESS
  */
-    NLAPI void NLAPIENTRY nlSetFunction(NLenum pname, NLfunc param);
+    NLAPI void NLAPIENTRY nlSetFunction(NLContext context, NLenum pname, NLfunc param);
 
 /**
  * \brief Gets a function pointer
@@ -963,7 +963,7 @@ typedef void* NLContext;
  * \see nlSetFunction(), NL_FUNC_MATRIX, NL_FUNC_PRECONDITIONER, 
  *  NL_FUNC_PROGRESS
  */
-    NLAPI void NLAPIENTRY nlGetFunction(NLenum pname, NLfunc* param);
+    NLAPI void NLAPIENTRY nlGetFunction(NLContext context, NLenum pname, NLfunc* param);
 
 /**
  * @}
@@ -979,7 +979,7 @@ typedef void* NLContext;
  * \see nlGetVariable(), nlLockVariable(), nlUnlockVariable(), 
  *  nlVariableIsLocked()
  */
-    NLAPI void NLAPIENTRY nlSetVariable(NLuint i, NLdouble value);
+    NLAPI void NLAPIENTRY nlSetVariable(NLContext context, NLuint i, NLdouble value);
 
 
 /**
@@ -993,7 +993,7 @@ typedef void* NLContext;
  * \see nlMultiGetVariable()
  */
     NLAPI void NLAPIENTRY nlMultiSetVariable(
-	NLuint i, NLuint k, NLdouble value
+		NLContext context, NLuint i, NLuint k, NLdouble value
     );
     
 /**
@@ -1004,7 +1004,7 @@ typedef void* NLContext;
  * \see nlSetVariable(), nlLockVariable(), nlUnlockVariable(), 
  * nlVariableIsLocked()
  */
-    NLAPI NLdouble NLAPIENTRY nlGetVariable(NLuint i);
+    NLAPI NLdouble NLAPIENTRY nlGetVariable(NLContext context, NLuint i);
 
 /**
  * \brief Gets the value of a variable when there are several systems
@@ -1016,7 +1016,7 @@ typedef void* NLContext;
  * \return value value of the variable
  * \see nlMultiSetVariable()
  */
-    NLAPI NLdouble NLAPIENTRY nlMultiGetVariable(NLuint i, NLuint k);
+    NLAPI NLdouble NLAPIENTRY nlMultiGetVariable(NLContext context, NLuint i, NLuint k);
     
 /**
  * \brief Locks a variable
@@ -1030,7 +1030,7 @@ typedef void* NLContext;
  * \see nlGetVariable(), nlSetVariable(), nlUnlockVariable(), 
  * nlVariableIsLocked()
  */
-    NLAPI void NLAPIENTRY nlLockVariable(NLuint index);
+    NLAPI void NLAPIENTRY nlLockVariable(NLContext context, NLuint index);
 
 /**
  * \brief Unlocks a variable
@@ -1043,7 +1043,7 @@ typedef void* NLContext;
  *  nlGetInteger(NL_NB_VARIABLES)-1
  * \see nlGetVariable(), nlSetVariable(), nlLockVariable(), nlVariableIsLocked()
  */
-    NLAPI void NLAPIENTRY nlUnlockVariable(NLuint index);
+    NLAPI void NLAPIENTRY nlUnlockVariable(NLContext context, NLuint index);
 
 /**
  * \brief Tests whether a variable is locked
@@ -1056,7 +1056,7 @@ typedef void* NLContext;
  *  nlGetInteger(NL_NB_VARIABLES)-1
  * \see nlGetVariable(), nlSetVariable(), nlLockVariable(), nlUnlockVariable()
  */
-    NLAPI NLboolean NLAPIENTRY nlVariableIsLocked(NLuint index);
+    NLAPI NLboolean NLAPIENTRY nlVariableIsLocked(NLContext context, NLuint index);
 
 /**
  * @}
@@ -1113,7 +1113,7 @@ typedef void* NLContext;
  * \endcode
  * \param[in] primitive one of NL_SYSTEM, NL_MATRIX, NL_ROW
  */
-    NLAPI void NLAPIENTRY nlBegin(NLenum primitive);
+    NLAPI void NLAPIENTRY nlBegin(NLContext context, NLenum primitive);
 
 /**
  * \brief Begins a new primitive
@@ -1132,7 +1132,7 @@ typedef void* NLContext;
  * \endcode
  * \param[in] primitive one of NL_SYSTEM, NL_MATRIX, NL_ROW
  */
-    NLAPI void NLAPIENTRY nlEnd(NLenum primitive);
+    NLAPI void NLAPIENTRY nlEnd(NLContext context, NLenum primitive);
 
 
 /**
@@ -1142,7 +1142,7 @@ typedef void* NLContext;
  * \param[in] i the index of the row.
  * \param[in] n the length of the row.
  */
-    NLAPI void NLAPIENTRY nlSetRowLength(NLuint i, NLuint n);
+    NLAPI void NLAPIENTRY nlSetRowLength(NLContext context, NLuint i, NLuint n);
     
 /**
  * \brief Appends a coefficient to the current row.
@@ -1156,7 +1156,7 @@ typedef void* NLContext;
  * \see nlBegin(), nlEnd(), NL_ROW, NL_RIGHT_HAND_SIDE, NL_ROW_SCALING,
  *  NL_NORMALIZE_ROWS
  */
-    NLAPI void NLAPIENTRY nlCoefficient(NLuint i, NLdouble value);
+    NLAPI void NLAPIENTRY nlCoefficient(NLContext context, NLuint i, NLdouble value);
 
 
 
@@ -1170,7 +1170,7 @@ typedef void* NLContext;
  * \param[in] value value to be added to the coefficient
  */    
     NLAPI void NLAPIENTRY nlAddIJCoefficient(
-        NLuint i, NLuint j, NLdouble value
+		NLContext context, NLuint i, NLuint j, NLdouble value
     );
 
 
@@ -1184,7 +1184,7 @@ typedef void* NLContext;
  * \param[in] i index of the component
  * \param[in] value value to be added to the component
  */    
-    NLAPI void NLAPIENTRY nlAddIRightHandSide(NLuint i, NLdouble value);
+    NLAPI void NLAPIENTRY nlAddIRightHandSide(NLContext context, NLuint i, NLdouble value);
 
 /**
  * \brief Adds a coefficient to a component of the right hand side 
@@ -1198,7 +1198,7 @@ typedef void* NLContext;
  * \param[in] value value to be added to the component
  */    
     NLAPI void NLAPIENTRY nlMultiAddIRightHandSide(
-	NLuint i, NLuint k, NLdouble value
+		NLContext context, NLuint i, NLuint k, NLdouble value
     );
     
 /**
@@ -1228,7 +1228,7 @@ typedef void* NLContext;
  *  is reset to zero after completion of nlEnd(NL_ROW).
  * \param[in] value value to be accumulated into the right hand side.
  */
-    NLAPI void NLAPIENTRY nlRightHandSide(NLdouble value);
+    NLAPI void NLAPIENTRY nlRightHandSide(NLContext context, NLdouble value);
 
 
 /**
@@ -1238,7 +1238,7 @@ typedef void* NLContext;
  * \param[in] value the coefficient
  * \see nlRightHandSide()
  */
-    NLAPI void NLAPIENTRY nlMultiRightHandSide(NLuint k, NLdouble value);
+    NLAPI void NLAPIENTRY nlMultiRightHandSide(NLContext context, NLuint k, NLdouble value);
     
 /**
  * \brief Sets the row scaling for the next row.
@@ -1269,7 +1269,7 @@ typedef void* NLContext;
  * \pre This function should be called after nlBegin(NL_MATRIX) 
  *  and before nlBegin(NL_ROW).
  */
-    NLAPI void NLAPIENTRY nlRowScaling(NLdouble value);
+    NLAPI void NLAPIENTRY nlRowScaling(NLContext context, NLdouble value);
     
 /**
  * @}
@@ -1284,7 +1284,7 @@ typedef void* NLContext;
  *  called, client code may get the value of the computed variables
  *  using nlGetVariable(). 
  */
-    NLAPI NLboolean NLAPIENTRY nlSolve(void);
+    NLAPI NLboolean NLAPIENTRY nlSolve(NLContext context);
 
 
 /**
@@ -1296,7 +1296,7 @@ typedef void* NLContext;
  *  state to constructed. This function cannot be called if 
  *  NL_NB_SYSTEMS is different from 1.
  */
-    NLAPI void NLAPIENTRY nlUpdateRightHandSide(NLdouble* values);
+    NLAPI void NLAPIENTRY nlUpdateRightHandSide(NLContext context, NLdouble* values);
 
 /**
  * @}
@@ -1325,7 +1325,7 @@ typedef void* NLContext;
  * \param[in] stride number of bytes between two consecutive elements.
  */
     NLAPI void NLAPIENTRY nlBindBuffer(
-	NLenum buffer, NLuint k, void* addr, NLuint stride
+		NLContext context, NLenum buffer, NLuint k, void* addr, NLuint stride
     );
 
     
@@ -1352,7 +1352,7 @@ typedef void* NLContext;
  * \param[in] matrix one of NL_STIFFNESS_MATRIX (default), NL_MASS_MATRIX
  * \details Calling nlMatrixMode() resets the current row to 0.
  */
-NLAPI void NLAPIENTRY nlMatrixMode(NLenum matrix);
+NLAPI void NLAPIENTRY nlMatrixMode(NLContext context, NLenum matrix);
     
 /**
  * \brief Symbolic constant for nlEigenSolverParameteri(),
@@ -1396,7 +1396,7 @@ NLAPI void NLAPIENTRY nlMatrixMode(NLenum matrix);
  *   one of NL_EIGEN_SHIFT, NL_EIGEN_THRESHOLD.
  */
     NLAPI void NLAPIENTRY nlEigenSolverParameterd(
-	NLenum pname, NLdouble val
+		NLContext context, NLenum pname, NLdouble val
     );
 
 /**
@@ -1406,13 +1406,13 @@ NLAPI void NLAPIENTRY nlMatrixMode(NLenum matrix);
  *   NL_EIGEN_MAX_ITERATIONS, NL_SYMMETRIC.
  */
     NLAPI void NLAPIENTRY nlEigenSolverParameteri(
-	NLenum pname, NLint val
+		NLContext context, NLenum pname, NLint val
     );
 
 /**
  * \brief Calls the eigen solver.
  */
-    NLAPI void NLAPIENTRY nlEigenSolve(void);
+    NLAPI void NLAPIENTRY nlEigenSolve(NLContext context);
 
 
 /**
@@ -1420,7 +1420,7 @@ NLAPI void NLAPIENTRY nlMatrixMode(NLenum matrix);
  * \param i index of the eigenvalue.
  * \return the \p i th eigenvalue.
  */
-    NLAPI double NLAPIENTRY nlGetEigenValue(NLuint i);
+    NLAPI double NLAPIENTRY nlGetEigenValue(NLContext context, NLuint i);
 
 /**
  * @}

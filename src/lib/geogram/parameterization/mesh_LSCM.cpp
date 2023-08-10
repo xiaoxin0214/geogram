@@ -118,7 +118,7 @@ namespace {
 	    }
 	    
 	    const int nb_eigens = 10;
-	    nlNewContext();
+		NLContext context = nlNewContext();
 	    NLuint nb_vertices = NLuint(mesh_.vertices.nb());
 	    
 	    if(spectral_) {
@@ -127,10 +127,10 @@ namespace {
 			Logger::out("LSCM") << "ARPACK extension initialized"
 					    << std::endl;
 		    }
-		    nlEigenSolverParameteri(NL_EIGEN_SOLVER, NL_ARPACK_EXT);
-		    nlEigenSolverParameteri(NL_NB_EIGENS, nb_eigens);
+		    nlEigenSolverParameteri(context, NL_EIGEN_SOLVER, NL_ARPACK_EXT);
+		    nlEigenSolverParameteri(context, NL_NB_EIGENS, nb_eigens);
 		    if(verbose_) {
-			nlEnable(NL_VERBOSE);
+			nlEnable(context, NL_VERBOSE);
 		    }
 		} else {
 		    if(verbose_) {
@@ -144,7 +144,6 @@ namespace {
 		    spectral_ = false;
 		}
 	    } else {
-#ifndef GEO_OS_ANDROID                
 		if(
 		    nb_vertices <= 200000 && (
 			nlExtensionIsInitialized("SUPERLU") ||
@@ -155,22 +154,20 @@ namespace {
 			Logger::out("LSCM") << "using SUPERLU"
 					    << std::endl;
 		    }
-                    nlSolverParameteri(NL_SOLVER, NL_PERM_SUPERLU_EXT);
+                    nlSolverParameteri(context, NL_SOLVER, NL_PERM_SUPERLU_EXT);
 		} else if(
                     nlExtensionIsInitialized("AMGCL") ||
                     nlInitExtension("AMGCL")
                 ) {
 		    if(verbose_) {
-			nlEnable(NL_VERBOSE);
+			nlEnable(context, NL_VERBOSE);
 			Logger::out("LSCM") << "using AMGCL"
 					    << std::endl;
 		    }
-		    nlSolverParameteri(NL_SOLVER, NL_AMGCL_EXT);
-		} else
-#endif
-                {
+		    nlSolverParameteri(context, NL_SOLVER, NL_AMGCL_EXT);
+		} else {
 		    if(verbose_) {
-			nlEnable(NL_VERBOSE);
+			nlEnable(context, NL_VERBOSE);
 			Logger::out("LSCM") << "using JacobiCG"
 					    << std::endl;
 		    }
@@ -179,61 +176,61 @@ namespace {
 	    if(!spectral_) {
 		project();
 	    }
-	    nlSolverParameteri(NL_NB_VARIABLES, NLint(2*nb_vertices));
-	    nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
-	    nlSolverParameteri(NL_MAX_ITERATIONS, NLint(5*nb_vertices));
+	    nlSolverParameteri(context, NL_NB_VARIABLES, NLint(2*nb_vertices));
+	    nlSolverParameteri(context, NL_LEAST_SQUARES, NL_TRUE);
+	    nlSolverParameteri(context, NL_MAX_ITERATIONS, NLint(5*nb_vertices));
 	    if(spectral_) {
-		nlSolverParameterd(NL_THRESHOLD, 0.0);	    
+		nlSolverParameterd(context, NL_THRESHOLD, 0.0);
 	    } else {
-		nlSolverParameterd(NL_THRESHOLD, 1e-10);
+		nlSolverParameterd(context, NL_THRESHOLD, 1e-10);
 	    }
-	    nlBegin(NL_SYSTEM);
-	    mesh_to_solver();
-	    nlBegin(NL_MATRIX);
-	    setup_lscm();
-	    nlEnd(NL_MATRIX);
-	    nlEnd(NL_SYSTEM);
+	    nlBegin(context, NL_SYSTEM);
+	    mesh_to_solver(context);
+	    nlBegin(context, NL_MATRIX);
+	    setup_lscm(context);
+	    nlEnd(context, NL_MATRIX);
+	    nlEnd(context, NL_SYSTEM);
 	    if(verbose_) {
 		Logger::out("LSCM") << "Solving ..." << std::endl;
 	    }
 	    
 	    if(spectral_) {
-		nlEigenSolve();
+		nlEigenSolve(context);
 		if(verbose_) {
 		    for(NLuint i=0; i<nb_eigens; ++i) {
 			Logger::out("LSCM") << "[" << i << "] "
-					    << nlGetEigenValue(i) << std::endl;
+					    << nlGetEigenValue(context, i) << std::endl;
 		    }
 		}
 		
 		// Find first "non-zero" eigenvalue
-		double small_eigen = ::fabs(nlGetEigenValue(0)) ;
+		double small_eigen = ::fabs(nlGetEigenValue(context, 0)) ;
 		eigen_ = 1;
 		for(NLuint i=1; i<nb_eigens; ++i) {
-		    if(::fabs(nlGetEigenValue(i)) / small_eigen > 1e3) {
+		    if(::fabs(nlGetEigenValue(context, i)) / small_eigen > 1e3) {
 			eigen_ = i ;
 			break ;
 		    }
 		}
 	    } else{
-		nlSolve();
+		nlSolve(context);
 	    }
 
-	    solver_to_mesh();
+	    solver_to_mesh(context);
 	    normalize_uv();
 	    
 	    if(!spectral_) {
 		if(verbose_) {
 		    double time;
 		    NLint iterations;	    
-		    nlGetDoublev(NL_ELAPSED_TIME, &time);
-		    nlGetIntegerv(NL_USED_ITERATIONS, &iterations);
+		    nlGetDoublev(context, NL_ELAPSED_TIME, &time);
+		    nlGetIntegerv(context, NL_USED_ITERATIONS, &iterations);
 		    Logger::out("LSCM") << "Solver time: " << time << std::endl;
 		    Logger::out("LSCM") << "Used iterations: "
 					<< iterations << std::endl;
 		}
 	    }
-	    nlDeleteContext(nlGetCurrent());
+	    nlDeleteContext(context);
 	}
 
     protected:
@@ -241,9 +238,9 @@ namespace {
 	/**
 	 * \brief Creates the LSCM equations in OpenNL.
 	 */
-	void setup_lscm() {
+	void setup_lscm(NLContext context) {
 	    for(NLuint f=0; f<mesh_.facets.nb(); ++f) {
-		setup_lscm(f);
+		setup_lscm(context, f);
 	    }
 	}
 
@@ -256,7 +253,7 @@ namespace {
 	 *   radiating around vertex 0 of the facet.
 	 *   (however, this may be invalid for concave facets)
 	 */
-	void setup_lscm(NLuint f) {
+	void setup_lscm(NLContext context, NLuint f) {
 	    NLuint nv = NLuint(mesh_.facets.nb_vertices(f));
 	    if(angle_.is_bound()) {
 		index_t c0 = mesh_.facets.corners_begin(f);
@@ -265,6 +262,7 @@ namespace {
 		    double ai = angle_[c0+i];
 		    double aip1 = angle_[c0+1+1];
 		    setup_conformal_map_relations(
+			context,
 			NLuint(mesh_.facets.vertex(f,0)),
 			NLuint(mesh_.facets.vertex(f,i)),
 			NLuint(mesh_.facets.vertex(f,i+1)),
@@ -274,6 +272,7 @@ namespace {
 	    } else {
 		for(NLuint i=1; i<nv-1; ++i) {
 		    setup_conformal_map_relations(
+			context,
 			NLuint(mesh_.facets.vertex(f,0)),
 			NLuint(mesh_.facets.vertex(f,i)),
 			NLuint(mesh_.facets.vertex(f,i+1))
@@ -333,7 +332,7 @@ namespace {
 	 * the presence of degenerate triangles.
 	 */
 	void setup_conformal_map_relations(
-	    NLuint v0, NLuint v1, NLuint v2
+		NLContext context, NLuint v0, NLuint v1, NLuint v2
 	) {
             
 	    const vec3& p0 = Geom::mesh_vertex(mesh_, v0);
@@ -362,22 +361,22 @@ namespace {
 	    // Note : rhs = 0
 	    
 	    // Real part
-	    nlBegin(NL_ROW);
-	    nlCoefficient(u0_id, -a+c) ;
-	    nlCoefficient(v0_id,  b-d) ;
-	    nlCoefficient(u1_id,   -c) ;
-	    nlCoefficient(v1_id,    d) ;
-	    nlCoefficient(u2_id,    a);
-	    nlEnd(NL_ROW);
+	    nlBegin(context, NL_ROW);
+	    nlCoefficient(context, u0_id, -a+c) ;
+	    nlCoefficient(context, v0_id,  b-d) ;
+	    nlCoefficient(context, u1_id,   -c) ;
+	    nlCoefficient(context, v1_id,    d) ;
+	    nlCoefficient(context, u2_id,    a);
+	    nlEnd(context, NL_ROW);
 	    
 	    // Imaginary part
-	    nlBegin(NL_ROW);
-	    nlCoefficient(u0_id, -b+d);
-	    nlCoefficient(v0_id, -a+c);
-	    nlCoefficient(u1_id,   -d);
-	    nlCoefficient(v1_id,   -c);
-	    nlCoefficient(v2_id,    a);
-	    nlEnd(NL_ROW);
+	    nlBegin(context, NL_ROW);
+	    nlCoefficient(context, u0_id, -b+d);
+	    nlCoefficient(context, v0_id, -a+c);
+	    nlCoefficient(context, u1_id,   -d);
+	    nlCoefficient(context, v1_id,   -c);
+	    nlCoefficient(context, v2_id,    a);
+	    nlEnd(context, NL_ROW);
 	}
 
 	/**
@@ -392,7 +391,7 @@ namespace {
 	 *   three vertices of the triangle
 	 */
 	void setup_conformal_map_relations(
-	    NLuint v0, NLuint v1, NLuint v2,
+		NLContext context, NLuint v0, NLuint v1, NLuint v2,
 	    double alpha0, double alpha1, double alpha2
 	) {
 	    const vec3& p0 = Geom::mesh_vertex(mesh_, v0);
@@ -418,35 +417,35 @@ namespace {
 	    // Note : rhs = 0
 	    
 	    // Real part
-	    nlRowScaling(s);
-	    nlBegin(NL_ROW);
-	    nlCoefficient(u0_id, 1.0 - a) ;
-	    nlCoefficient(v0_id, b) ;
-	    nlCoefficient(u1_id, a) ;
-	    nlCoefficient(v1_id, -b) ;
-	    nlCoefficient(u2_id, -1.0);
-	    nlEnd(NL_ROW);
+	    nlRowScaling(context, s);
+	    nlBegin(context, NL_ROW);
+	    nlCoefficient(context, u0_id, 1.0 - a) ;
+	    nlCoefficient(context, v0_id, b) ;
+	    nlCoefficient(context, u1_id, a) ;
+	    nlCoefficient(context, v1_id, -b) ;
+	    nlCoefficient(context, u2_id, -1.0);
+	    nlEnd(context, NL_ROW);
 	    
 	    // Imaginary part
-	    nlRowScaling(s);	    
-	    nlBegin(NL_ROW);
-	    nlCoefficient(u0_id, -b);
-	    nlCoefficient(v0_id, 1.0-a);
-	    nlCoefficient(u1_id, b);
-	    nlCoefficient(v1_id, a);
-	    nlCoefficient(v2_id, -1.0);
-	    nlEnd(NL_ROW);
+	    nlRowScaling(context, s);
+	    nlBegin(context, NL_ROW);
+	    nlCoefficient(context, u0_id, -b);
+	    nlCoefficient(context, v0_id, 1.0-a);
+	    nlCoefficient(context, u1_id, b);
+	    nlCoefficient(context, v1_id, a);
+	    nlCoefficient(context, v2_id, -1.0);
+	    nlEnd(context, NL_ROW);
 	}
 	
 	/**
 	 * \brief Copies u,v coordinates from OpenNL solver to the mesh.
 	 */
-	void solver_to_mesh() {
+	void solver_to_mesh(NLContext context) {
 	    for(index_t i: mesh_.vertices) {
-		double u = spectral_ ? nlMultiGetVariable(NLuint(2*i),eigen_)
-		                     : nlGetVariable(2*i);
-		double v = spectral_ ? nlMultiGetVariable(NLuint(2*i+1),eigen_)
-		                     : nlGetVariable(2*i+1);
+		double u = spectral_ ? nlMultiGetVariable(context, NLuint(2*i),eigen_)
+		                     : nlGetVariable(context, 2*i);
+		double v = spectral_ ? nlMultiGetVariable(context, NLuint(2*i+1),eigen_)
+		                     : nlGetVariable(context, 2*i+1);
 		tex_coord_[2*i] = u;
 		tex_coord_[2*i+1] = v;
 	    }
@@ -491,15 +490,15 @@ namespace {
 	/**
 	 * \brief Copies u,v coordinates from the mesh to OpenNL solver.
 	 */
-	void mesh_to_solver() {
+	void mesh_to_solver(NLContext context) {
 	    for(NLuint i=0; i<mesh_.vertices.nb(); ++i) {
 		double u = tex_coord_[2*i];
 		double v = tex_coord_[2*i+1];
-		nlSetVariable(2 * i    , u);
-		nlSetVariable(2 * i + 1, v);
+		nlSetVariable(context, 2 * i    , u);
+		nlSetVariable(context, 2 * i + 1, v);
 		if(!spectral_ && is_locked(i)) {
-		    nlLockVariable(2 * i    );
-		    nlLockVariable(2 * i + 1);
+		    nlLockVariable(context, 2 * i    );
+		    nlLockVariable(context, 2 * i + 1);
 		} 
 	    }
 	}

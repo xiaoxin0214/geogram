@@ -68,10 +68,12 @@
 /************************************************************************/
 
 static NLuint nlSolveSystem_CG(
-    NLBlas_t blas,
+	NLContext context, 
+	NLBlas_t blas,
     NLMatrix M, NLdouble* b, NLdouble* x,
     double eps, NLuint max_iter
 ) {
+	NLContextStruct* nlCurrentContext = (NLContextStruct*)context;
     NLint N = (NLint)M->m;
 
     NLdouble *g = NL_NEW_VECTOR(blas, NL_DEVICE_MEMORY, N);
@@ -119,10 +121,11 @@ static NLuint nlSolveSystem_CG(
 }
 
 static NLuint nlSolveSystem_PRE_CG(
-    NLBlas_t blas,
+	NLContext context, NLBlas_t blas,
     NLMatrix M, NLMatrix P, NLdouble* b, NLdouble* x,
     double eps, NLuint max_iter
 ) {
+	NLContextStruct* nlCurrentContext = (NLContextStruct*)context;
     NLint     N        = (NLint)M->n;
     NLdouble* r = NL_NEW_VECTOR(blas, NL_DEVICE_MEMORY, N);
     NLdouble* d = NL_NEW_VECTOR(blas, NL_DEVICE_MEMORY, N);
@@ -172,10 +175,11 @@ static NLuint nlSolveSystem_PRE_CG(
 }
 
 static NLuint nlSolveSystem_BICGSTAB(
-    NLBlas_t blas,
+	NLContext context, NLBlas_t blas,
     NLMatrix M, NLdouble* b, NLdouble* x,
     double eps, NLuint max_iter
 ) {
+	NLContextStruct* nlCurrentContext = (NLContextStruct*)context;
     NLint     N   = (NLint)M->n;
     NLdouble *rT  = NL_NEW_VECTOR(blas, NL_DEVICE_MEMORY, N); 
     NLdouble *d   = NL_NEW_VECTOR(blas, NL_DEVICE_MEMORY, N); 
@@ -251,10 +255,11 @@ static NLuint nlSolveSystem_BICGSTAB(
 }
 
 static NLuint nlSolveSystem_PRE_BICGSTAB(
-    NLBlas_t blas,
+	NLContext context, NLBlas_t blas,
     NLMatrix M, NLMatrix P, NLdouble* b, NLdouble* x,
     double eps, NLuint max_iter
 ) {
+	NLContextStruct* nlCurrentContext = (NLContextStruct*)context;
     NLint     N   = (NLint)M->n;
     NLdouble *rT  = NL_NEW_VECTOR(blas, NL_DEVICE_MEMORY, N);
     NLdouble *d   = NL_NEW_VECTOR(blas, NL_DEVICE_MEMORY, N);
@@ -446,11 +451,12 @@ static NLuint nlSolveSystem_GMRES(
 /* Main driver routine */
 
 NLuint nlSolveSystemIterative(
-    NLBlas_t blas,
+	NLContext context, NLBlas_t blas,
     NLMatrix M, NLMatrix P, NLdouble* b_in, NLdouble* x_in,
     NLenum solver,
     double eps, NLuint max_iter, NLuint inner_iter
 ) {
+	NLContextStruct* nlCurrentContext = (NLContextStruct*)context;
     NLuint N = M->n;
     NLuint result=0;
     NLdouble rnorm=0.0;
@@ -477,16 +483,16 @@ NLuint nlSolveSystemIterative(
     switch(solver) {
 	case NL_CG:
 	    if(P == NULL) {
-		result = nlSolveSystem_CG(blas,M,b,x,eps,max_iter);
+		result = nlSolveSystem_CG(context, blas,M,b,x,eps,max_iter);
 	    } else {
-		result = nlSolveSystem_PRE_CG(blas,M,P,b,x,eps,max_iter);
+		result = nlSolveSystem_PRE_CG(context, blas,M,P,b,x,eps,max_iter);
 	    }
 	    break;
 	case NL_BICGSTAB:
 	    if(P == NULL) {
-		result = nlSolveSystem_BICGSTAB(blas,M,b,x,eps,max_iter);
+		result = nlSolveSystem_BICGSTAB(context, blas,M,b,x,eps,max_iter);
 	    } else {
-		result = nlSolveSystem_PRE_BICGSTAB(blas,M,P,b,x,eps,max_iter);
+		result = nlSolveSystem_PRE_BICGSTAB(context, blas,M,P,b,x,eps,max_iter);
 	    }
 	    break;
 	case NL_GMRES:

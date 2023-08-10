@@ -285,11 +285,11 @@ static void NLMultMatrixVector_MKL_impl(
 #define LIB_DIR "lib/intel64/"
 #define MKL_PREFIX  INTEL_PREFIX "mkl/" LIB_DIR
 
-NLboolean nlInitExtension_MKL(void) {
+NLboolean nlInitExtension_MKL() {
     NLenum flags = NL_LINK_LAZY | NL_LINK_GLOBAL;
-    if(nlCurrentContext == NULL || !nlCurrentContext->verbose) {
+    //if(nlCurrentContext == NULL || !nlCurrentContext->verbose) {
 	flags |= NL_LINK_QUIET;
-    }
+    //}
     
     if(MKL()->DLL_mkl_intel_lp64 != NULL) {
         return nlExtensionIsInitialized_MKL();

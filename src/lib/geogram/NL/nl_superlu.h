@@ -76,7 +76,7 @@ NLAPI NLMatrix NLAPIENTRY nlMatrixFactorize_SUPERLU(
  *   found in it.
  * \retval NL_FALSE otherwise.
  */
-NLboolean nlInitExtension_SUPERLU(void);
+NLboolean nlInitExtension_SUPERLU();
 
 /**
  * \brief Tests whether the SUPERLU extension is initialized.

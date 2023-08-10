@@ -284,11 +284,11 @@ static void nlTerminateExtension_CHOLMOD(void) {
     }
 }
 
-NLboolean nlInitExtension_CHOLMOD(void) {
+NLboolean nlInitExtension_CHOLMOD() {
     NLenum flags = NL_LINK_NOW | NL_LINK_USE_FALLBACK;
-    if(nlCurrentContext == NULL || !nlCurrentContext->verbose) {
+    //if(nlCurrentContext == NULL || !nlCurrentContext->verbose) {
 	flags |= NL_LINK_QUIET;
-    }
+    //}
     
     if(CHOLMOD()->DLL_handle != NULL) {
         return nlExtensionIsInitialized_CHOLMOD();

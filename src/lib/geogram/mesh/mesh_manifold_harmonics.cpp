@@ -90,6 +90,7 @@ namespace {
      *	 - FEM_P1_LUMPED: linear finite elements with lumped mass matrix
      */
     void assemble_Laplacian_matrices(
+	NLContext context,
 	const Mesh& M,
 	LaplaceBeltramiDiscretization discretization
     ) {
@@ -113,8 +114,8 @@ namespace {
 	// Step 2: compute stiffness matrix
 	// **************************************************	
 	
-	nlMatrixMode(NL_STIFFNESS_MATRIX);	
-	nlBegin(NL_MATRIX);
+	nlMatrixMode(context, NL_STIFFNESS_MATRIX);
+	nlBegin(context, NL_MATRIX);
 
 	for(index_t f: M.facets) {
 	    index_t fnv = M.facets.nb_vertices(f);
@@ -124,19 +125,19 @@ namespace {
 		switch(discretization) {
 		    case COMBINATORIAL: {
 			double w = 1.0;
-			nlAddIJCoefficient(v1,v2,w);
+			nlAddIJCoefficient(context, v1,v2,w);
 			v_row_sum[v1] += w;
 		    } break;
 		    case UNIFORM: {
 			double w = 1.0 / double(v_degree[v1]);
-			nlAddIJCoefficient(v1,v2,w);
+			nlAddIJCoefficient(context, v1,v2,w);
 			v_row_sum[v1] += w;
 		    } break;
 		    case FEM_P1:
 		    case FEM_P1_LUMPED: {
 			double w = 0.5 * P1_FEM_coefficient(M,f,v1,v2);
-			nlAddIJCoefficient(v1,v2,w);
-			nlAddIJCoefficient(v2,v1,w);
+			nlAddIJCoefficient(context, v1,v2,w);
+			nlAddIJCoefficient(context, v2,v1,w);
 			v_row_sum[v1] += w;
 			v_row_sum[v2] += w;
 		    } break;
@@ -146,16 +147,16 @@ namespace {
 	for(index_t v: M.vertices) {
 	    // Diagonal term is minus row sum
 	    // plus small number to make M non-singular
-	    nlAddIJCoefficient(v,v,-v_row_sum[v] + 1e-6);
+	    nlAddIJCoefficient(context, v,v,-v_row_sum[v] + 1e-6);
 	}
-	nlEnd(NL_MATRIX);
+	nlEnd(context, NL_MATRIX);
 
 	// Step 3: compute mass matrix
 	// **************************************************	
 	
 	if(discretization == FEM_P1 || discretization == FEM_P1_LUMPED) {
-	    nlMatrixMode(NL_MASS_MATRIX);
-	    nlBegin(NL_MATRIX);
+	    nlMatrixMode(context, NL_MASS_MATRIX);
+	    nlBegin(context, NL_MATRIX);
 	    for(index_t f: M.facets) {
 		index_t v1 = M.facets.vertex(f,0);
 		index_t v2 = M.facets.vertex(f,1);
@@ -167,25 +168,25 @@ namespace {
 		    
 		if(discretization == FEM_P1_LUMPED) {
 		    
-		    nlAddIJCoefficient(v1,v1,A/3.0);
-		    nlAddIJCoefficient(v2,v2,A/3.0);
-		    nlAddIJCoefficient(v3,v3,A/3.0);
+		    nlAddIJCoefficient(context, v1,v1,A/3.0);
+		    nlAddIJCoefficient(context, v2,v2,A/3.0);
+		    nlAddIJCoefficient(context, v3,v3,A/3.0);
 		    
 		} else if(discretization == FEM_P1) {
 		    
-		    nlAddIJCoefficient(v1,v2,A/12.0);
-		    nlAddIJCoefficient(v1,v3,A/12.0);
-		    nlAddIJCoefficient(v2,v3,A/12.0);
-		    nlAddIJCoefficient(v2,v1,A/12.0);
-		    nlAddIJCoefficient(v3,v1,A/12.0);
-		    nlAddIJCoefficient(v3,v2,A/12.0);
+		    nlAddIJCoefficient(context, v1,v2,A/12.0);
+		    nlAddIJCoefficient(context, v1,v3,A/12.0);
+		    nlAddIJCoefficient(context, v2,v3,A/12.0);
+		    nlAddIJCoefficient(context, v2,v1,A/12.0);
+		    nlAddIJCoefficient(context, v3,v1,A/12.0);
+		    nlAddIJCoefficient(context, v3,v2,A/12.0);
 		    
-		    nlAddIJCoefficient(v1,v1,A/6.0);
-		    nlAddIJCoefficient(v2,v2,A/6.0);
-		    nlAddIJCoefficient(v3,v3,A/6.0);
+		    nlAddIJCoefficient(context, v1,v1,A/6.0);
+		    nlAddIJCoefficient(context, v2,v2,A/6.0);
+		    nlAddIJCoefficient(context, v3,v3,A/6.0);
 		}
 	    }
-	    nlEnd(NL_MATRIX);
+	    nlEnd(context, NL_MATRIX);
 	}
     }
 }
@@ -221,20 +222,20 @@ namespace GEO {
 	    return;
 	} 
 
-	nlNewContext();
+	NLContext context = nlNewContext();
 	
-	nlEigenSolverParameteri(NL_EIGEN_SOLVER, NL_ARPACK_EXT);
-	nlEigenSolverParameteri(NL_NB_VARIABLES, NLint(M.vertices.nb()));
-	nlEigenSolverParameteri(NL_NB_EIGENS, (NLint)nb_eigens);
-	nlEigenSolverParameterd(NL_EIGEN_SHIFT, shift);
+	nlEigenSolverParameteri(context, NL_EIGEN_SOLVER, NL_ARPACK_EXT);
+	nlEigenSolverParameteri(context, NL_NB_VARIABLES, NLint(M.vertices.nb()));
+	nlEigenSolverParameteri(context, NL_NB_EIGENS, (NLint)nb_eigens);
+	nlEigenSolverParameterd(context, NL_EIGEN_SHIFT, shift);
 
 	if(discretization == COMBINATORIAL) {
-	    nlEigenSolverParameteri(NL_SYMMETRIC, NL_TRUE);
+	    nlEigenSolverParameteri(context, NL_SYMMETRIC, NL_TRUE);
 	}
 
-	nlEnable(NL_VARIABLES_BUFFER);
+	nlEnable(context, NL_VARIABLES_BUFFER);
 
-	nlBegin(NL_SYSTEM);
+	nlBegin(context, NL_SYSTEM);
 
 	Attribute<double> eigen_vector;
 	eigen_vector.create_vector_attribute(
@@ -245,7 +246,7 @@ namespace GEO {
 	    // Bind directly the variables buffer to the attribute in
 	    // the mesh, to avoid copying data.
 	    nlBindBuffer(
-		NL_VARIABLES_BUFFER,
+		context, NL_VARIABLES_BUFFER,
 		NLuint(eigen), 
 		&eigen_vector[0] + eigen, // base address for eigenvector
 		NLuint(sizeof(double)*nb_eigens) // number of bytes between two
@@ -256,23 +257,23 @@ namespace GEO {
 	// Step 2: assemble matrices
 	// *************************
 
-	assemble_Laplacian_matrices(M, discretization);
+	assemble_Laplacian_matrices(context, M, discretization);
 	
-	nlEnd(NL_SYSTEM);
+	nlEnd(context, NL_SYSTEM);
 
 	// Step 3: solve and cleanup
 	// *************************
 	
-	nlEigenSolve();
+	nlEigenSolve(context);
 
 	if(print_spectrum) {
 	    for(index_t i=0; i<nb_eigens; ++i) {
-		Logger::out("MH") << i << ":" << nlGetEigenValue(i)
+		Logger::out("MH") << i << ":" << nlGetEigenValue(context, i)
 				  << std::endl;
 	    }
 	}
 	
-	nlDeleteContext(nlGetCurrent());
+	nlDeleteContext(context);
     }
 
 
@@ -295,19 +296,19 @@ namespace GEO {
 	    return;
 	} 
 
-	nlNewContext();
+	NLContext context = nlNewContext();
 	
-	nlEigenSolverParameteri(NL_EIGEN_SOLVER, NL_ARPACK_EXT);
-	nlEigenSolverParameteri(NL_NB_VARIABLES, NLint(M.vertices.nb()));
-	nlEigenSolverParameteri(NL_NB_EIGENS, (NLint)nb_eigens_per_band);
+	nlEigenSolverParameteri(context, NL_EIGEN_SOLVER, NL_ARPACK_EXT);
+	nlEigenSolverParameteri(context, NL_NB_VARIABLES, NLint(M.vertices.nb()));
+	nlEigenSolverParameteri(context, NL_NB_EIGENS, (NLint)nb_eigens_per_band);
 
 	if(discretization == COMBINATORIAL) {
-	    nlEigenSolverParameteri(NL_SYMMETRIC, NL_TRUE);
+	    nlEigenSolverParameteri(context, NL_SYMMETRIC, NL_TRUE);
 	}
 
-	nlBegin(NL_SYSTEM);
-	assemble_Laplacian_matrices(M, discretization);
-	nlEnd(NL_SYSTEM);
+	nlBegin(context, NL_SYSTEM);
+	assemble_Laplacian_matrices(context, M, discretization);
+	nlEnd(context, NL_SYSTEM);
 
 
 	// Step 2: main loop
@@ -326,8 +327,8 @@ namespace GEO {
 	    while(compute_band) {
 		Logger::out("MH")
 		    << "Compute band, shift=" << shift << std::endl;
-		nlEigenSolverParameterd(NL_EIGEN_SHIFT, shift);
-		nlEigenSolve();
+		nlEigenSolverParameterd(context, NL_EIGEN_SHIFT, shift);
+		nlEigenSolve(context);
 		compute_band = false;
 
 		// Test whether the current band overlaps the previous one.
@@ -335,13 +336,13 @@ namespace GEO {
 		// a little bit.
 		
 		if(current_band != 0) {
-		    if(::fabs(nlGetEigenValue(0)) > ::fabs(latest_eigen)) {
+		    if(::fabs(nlGetEigenValue(context, 0)) > ::fabs(latest_eigen)) {
 			Logger::out("MH")
 			    << "Bands do no overlap (going back a little bit)"
 			    << std::endl;
 			shift -= 0.2*(
-			    nlGetEigenValue(nb_eigens_per_band - 1) -
-			    nlGetEigenValue(0)
+			    nlGetEigenValue(context, nb_eigens_per_band - 1) -
+			    nlGetEigenValue(context, 0)
 			);
 			compute_band = true;
 		    }
@@ -355,19 +356,19 @@ namespace GEO {
 		// that overlaps the previous band).
 		if(
 		    current_eigen == 0 ||
-		    ::fabs(nlGetEigenValue(i)) > ::fabs(latest_eigen)
+		    ::fabs(nlGetEigenValue(context, i)) > ::fabs(latest_eigen)
 		) {
-		    latest_eigen = nlGetEigenValue(i);
+		    latest_eigen = nlGetEigenValue(context, i);
 		    for(index_t j: M.vertices) {
-			eigen_vector[j] = nlMultiGetVariable(j,i);
+			eigen_vector[j] = nlMultiGetVariable(context, j,i);
 		    }
 		    callback(
 			current_eigen,
-			nlGetEigenValue(i), eigen_vector.data(), client_data
+			nlGetEigenValue(context, i), eigen_vector.data(), client_data
 		    );
 		    ++current_eigen;
 		    if(current_eigen >= nb_eigens) {
-			nlDeleteContext(nlGetCurrent());
+			nlDeleteContext(context);
 			return;
 		    }
 		}
@@ -376,7 +377,7 @@ namespace GEO {
 	    // Move to next band / next eigen shift.
 	    ++current_band;
 	    shift += 0.8 * (
-		nlGetEigenValue(nb_eigens_per_band - 1) - nlGetEigenValue(0)
+		nlGetEigenValue(context, nb_eigens_per_band - 1) - nlGetEigenValue(context, 0)
 	    );
 	}
     }

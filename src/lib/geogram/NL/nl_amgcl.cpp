@@ -10,7 +10,7 @@ extern "C" {
 }
 
 extern "C" {
-    NLboolean nlSolveAMGCL(void);
+    NLboolean nlSolveAMGCL(NLContext context);
 }
 
 
@@ -118,8 +118,8 @@ typedef amgcl::backend::builtin<double, colind_t, rowptr_t> Backend;
 
 /*************************************************************************/
 
-NLboolean nlSolveAMGCL() {
-
+NLboolean nlSolveAMGCL(NLContext context) {
+	NLContextStruct* ctxt = (NLContextStruct*)context;
     if(
 	GEO::CmdLine::get_arg_bool("OT:verbose") ||
 	GEO::CmdLine::get_arg_bool("OT:benchmark") 
@@ -128,7 +128,7 @@ NLboolean nlSolveAMGCL() {
     }
     
     // Get linear system to solve from OpenNL context
-    NLContextStruct* ctxt = (NLContextStruct*)nlGetCurrent();
+    //NLContextStruct* ctxt = (NLContextStruct*)nlGetCurrent();
 
     if(ctxt->M->type == NL_MATRIX_SPARSE_DYNAMIC) {
 	if(ctxt->verbose) {
@@ -213,7 +213,7 @@ NLboolean nlSolveAMGCL() {
 
 #else
 
-nlBoolean nlSolveAMGCL() {
+nlBoolean nlSolveAMGCL(NLContext context) {
     GEO::Logger::out("AMGCL") << "Not supported" << std::endl;
     return NL_FALSE;
 }

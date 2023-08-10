@@ -182,11 +182,11 @@ static char* u(const char* str) {
         return NL_FALSE;                                                   \
     }
 
-NLboolean nlInitExtension_ARPACK(void) {
+NLboolean nlInitExtension_ARPACK() {
     NLenum flags = NL_LINK_NOW | NL_LINK_USE_FALLBACK;
-    if(nlCurrentContext == NULL || !nlCurrentContext->verbose) {
+    //if(nlCurrentContext == NULL || !nlCurrentContext->verbose) {
 	flags |= NL_LINK_QUIET;
-    }
+    //}
     
     if(ARPACK()->DLL_handle != NULL) {
         return nlExtensionIsInitialized_ARPACK();
@@ -213,7 +213,8 @@ NLboolean nlInitExtension_ARPACK(void) {
  * \param[in] symmetric NL_TRUE if matrix is symmetric and there is no
  *  right-hand side matrix. NL_FALSE otherwise.
  */
-static NLMatrix create_OP(NLboolean symmetric) {
+static NLMatrix create_OP(NLContext context, NLboolean symmetric) {
+	NLContextStruct* nlCurrentContext = (NLContextStruct*)context;
     NLuint n = nlCurrentContext->M->n;
     NLuint i;
     NLMatrix result = NULL;
@@ -297,7 +298,8 @@ static NLMatrix create_OP(NLboolean symmetric) {
     return result;
 }
 
-static int eigencompare(const void* pi, const void* pj) {
+static int eigencompare(NLContext context, const void* pi, const void* pj) {
+	NLContextStruct* nlCurrentContext = (NLContextStruct*)context;
     NLuint i = *(const NLuint*)pi;
     NLuint j = *(const NLuint*)pj;
     double vali = fabs(nlCurrentContext->temp_eigen_value[i]);
@@ -308,13 +310,14 @@ static int eigencompare(const void* pi, const void* pj) {
     return vali < valj ? -1 : 1;
 }
 
-void nlEigenSolve_ARPACK(void) {
+void nlEigenSolve_ARPACK(NLContext context) {
+	NLContextStruct* nlCurrentContext = (NLContextStruct*)context;
     NLboolean symmetric =
 	nlCurrentContext->symmetric && (nlCurrentContext->B == NULL); 
     int n = (int)nlCurrentContext->M->n; /* Dimension of the matrix */
     int nev = /* Number of eigenvectors requested */
 	(int)nlCurrentContext->nb_systems;
-    NLMatrix OP = create_OP(symmetric);
+    NLMatrix OP = create_OP(context, symmetric);
     int ncv = (int)(nev * 2.5); /* Length of Arnoldi factorization */
                  /* Rule of thumb in ARPACK documentation: ncv > 2 * nev */
     int* iparam = NULL;

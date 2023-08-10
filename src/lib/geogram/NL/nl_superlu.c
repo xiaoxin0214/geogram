@@ -368,11 +368,11 @@ static void nlTerminateExtension_SUPERLU(void) {
     }
 
 
-NLboolean nlInitExtension_SUPERLU(void) {
+NLboolean nlInitExtension_SUPERLU() {
     NLenum flags = NL_LINK_NOW | NL_LINK_USE_FALLBACK;
-    if(nlCurrentContext == NULL || !nlCurrentContext->verbose) {
+    //if(nlCurrentContext == NULL || !nlCurrentContext->verbose) {
 	flags |= NL_LINK_QUIET;
-    }
+    //}
     
     if(SuperLU()->DLL_handle != NULL) {
         return nlExtensionIsInitialized_SUPERLU();

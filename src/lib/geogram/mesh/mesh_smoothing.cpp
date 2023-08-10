@@ -57,23 +57,23 @@ namespace GEO {
 	    }
 	}
 
-	nlNewContext();
+	NLContext context = nlNewContext();
 
-	nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
-	nlSolverParameteri(NL_NB_VARIABLES, NLint(M.vertices.nb()));
-	nlSolverParameteri(NL_NB_SYSTEMS, NLint(M.vertices.dimension()));
-	nlEnable(NL_NORMALIZE_ROWS);
-	nlEnable(NL_VARIABLES_BUFFER);
+	nlSolverParameteri(context, NL_LEAST_SQUARES, NL_TRUE);
+	nlSolverParameteri(context, NL_NB_VARIABLES, NLint(M.vertices.nb()));
+	nlSolverParameteri(context, NL_NB_SYSTEMS, NLint(M.vertices.dimension()));
+	nlEnable(context, NL_NORMALIZE_ROWS);
+	nlEnable(context, NL_VARIABLES_BUFFER);
 	
 	Attribute<bool> v_is_locked(M.vertices.attributes(), "selection");
 
-	nlBegin(NL_SYSTEM);
+	nlBegin(context, NL_SYSTEM);
 	
 	for(index_t coord=0; coord<M.vertices.dimension(); ++coord) {
 	    // Bind directly the variables buffer to the coordinates in
 	    // the mesh, to avoid copying data.
 	    nlBindBuffer(
-		NL_VARIABLES_BUFFER, NLuint(coord),
+		context, NL_VARIABLES_BUFFER, NLuint(coord),
 		M.vertices.point_ptr(0) + coord,
 		NLuint(sizeof(double)*M.vertices.dimension())
 	    );
@@ -81,30 +81,30 @@ namespace GEO {
 	
 	for(index_t v: M.vertices) {
 	    if(v_is_locked[v]) {
-		nlLockVariable(v);
+		nlLockVariable(context, v);
 	    }
 	}
 	
-	nlBegin(NL_MATRIX);
+	nlBegin(context, NL_MATRIX);
 	for(index_t v: M.vertices) {
-	    nlBegin(NL_ROW);
+	    nlBegin(context, NL_ROW);
 	    index_t count = 0;
 	    for(index_t c = v2c[v]; c != index_t(-1); c = next_c_around_v[c]) {
 		index_t f = c2f[c];
 		index_t c2 = M.facets.next_corner_around_facet(f,c);
 		index_t w = M.facet_corners.vertex(c2);
-		nlCoefficient(w, 1.0);
+		nlCoefficient(context, w, 1.0);
 		++count;
 	    }
-	    nlCoefficient(v, -double(count));
-	    nlEnd(NL_ROW);
+	    nlCoefficient(context, v, -double(count));
+	    nlEnd(context, NL_ROW);
 	}
-	nlEnd(NL_MATRIX);
-	nlEnd(NL_SYSTEM);
+	nlEnd(context, NL_MATRIX);
+	nlEnd(context, NL_SYSTEM);
 
-	nlSolve();
+	nlSolve(context);
 
-	nlDeleteContext(nlGetCurrent());
+	nlDeleteContext(context);
     }
     
 }

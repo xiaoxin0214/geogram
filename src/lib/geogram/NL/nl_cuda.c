@@ -804,7 +804,7 @@ static int getBestDeviceID() {
 #endif
 
 
-NLboolean nlInitExtension_CUDA(void) {
+NLboolean nlInitExtension_CUDA() {
     int cublas_version;
     int cusparse_version;
     static struct cudaDeviceProp deviceProp;
@@ -819,9 +819,9 @@ NLboolean nlInitExtension_CUDA(void) {
     int double_precision_perf_ratio;
     
     NLenum flags = NL_LINK_LAZY | NL_LINK_GLOBAL;
-    if(nlCurrentContext == NULL || !nlCurrentContext->verbose) {
+    //if(nlCurrentContext == NULL || !nlCurrentContext->verbose) {
 	flags |= NL_LINK_QUIET;
-    }
+    //}
     
     if(nlExtensionIsInitialized_CUDA()) {
 	return NL_TRUE;

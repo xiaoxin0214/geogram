@@ -466,29 +466,29 @@ namespace GEO {
 	    }
 	}
     
-	nlNewContext();
-	nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);	    
+	NLContext context = nlNewContext();
+	nlSolverParameteri(context, NL_LEAST_SQUARES, NL_TRUE);
 	nlSolverParameteri(
-	    NL_NB_VARIABLES, NLint(surface.vertices.nb())
+		context, NL_NB_VARIABLES, NLint(surface.vertices.nb())
 	);
 
 
-	nlBegin(NL_SYSTEM);
-	nlBegin(NL_MATRIX);
+	nlBegin(context, NL_SYSTEM);
+	nlBegin(context, NL_MATRIX);
 
 	// For each vertex v, least squares constraint that
 	// makes the vertex "attracted" by Qv[v]
 	for(index_t v: surface.vertices) {
 	    if(v_on_border[v]) {
-		nlRowScaling(border_importance);
+		nlRowScaling(context, border_importance);
 	    }
 
 	    // p + lambda_v * Nv = q ---> lambda_v * Nv = q - v
 	    for(index_t c=0; c<3; ++c) {
-		nlBegin(NL_ROW);
-		nlCoefficient(v,Nv[v][c]);
-		nlRightHandSide(Qv[v][c] - surface.vertices.point_ptr(v)[c]);
-		nlEnd(NL_ROW);
+		nlBegin(context, NL_ROW);
+		nlCoefficient(context, v,Nv[v][c]);
+		nlRightHandSide(context, Qv[v][c] - surface.vertices.point_ptr(v)[c]);
+		nlEnd(context, NL_ROW);
 	    }
 	}
 
@@ -519,13 +519,13 @@ namespace GEO {
 	    // --> Pf + 1/d(Sum lambda_v Nv) = Qf
 	    // --> Sum (1/d lambda_v Nv) = Qf - Pf
 	    for(index_t c=0; c<3; ++c) {
-		nlBegin(NL_ROW);
+		nlBegin(context, NL_ROW);
 		for(index_t lv=0; lv<d; ++lv) {
 		    index_t v = surface.facets.vertex(f,lv);
-		    nlCoefficient(v,Nv[v][c]/double(d));
+		    nlCoefficient(context, v,Nv[v][c]/double(d));
 		}
-		nlRightHandSide(Qf[c]-Pf[c]);
-		nlEnd(NL_ROW);
+		nlRightHandSide(context, Qf[c]-Pf[c]);
+		nlEnd(context, NL_ROW);
 	    }
 	}
 
@@ -557,12 +557,12 @@ namespace GEO {
 			// --> p + 1/2(lambda_1 N1 + lambda_2 N2) = q
 			// -->  (1/2 lambda_1 N1 + 1/2 lambda_2 N2) = q - p
 			for(index_t c=0; c<3; ++c) {
-			    nlRowScaling(0.5*border_importance);
-			    nlBegin(NL_ROW);
-			    nlCoefficient(v1,0.5*N[c]);
-			    nlCoefficient(v2,0.5*N[c]);
-			    nlRightHandSide(q[c]-p[c]);
-			    nlEnd(NL_ROW);
+			    nlRowScaling(context, 0.5*border_importance);
+			    nlBegin(context, NL_ROW);
+			    nlCoefficient(context, v1,0.5*N[c]);
+			    nlCoefficient(context, v2,0.5*N[c]);
+			    nlRightHandSide(context, q[c]-p[c]);
+			    nlEnd(context, NL_ROW);
 			}
 			
 		    }
@@ -570,17 +570,17 @@ namespace GEO {
 	    }
 	}
 	
-	nlEnd(NL_MATRIX);
-	nlEnd(NL_SYSTEM);
+	nlEnd(context, NL_MATRIX);
+	nlEnd(context, NL_SYSTEM);
 	
-	nlSolve();
+	nlSolve(context);
 
 	// Displace each vertex v along Nv[v] by
 	// the solution of the least squares problem
 	// at v
 	for(index_t v: surface.vertices) {
 	    vec3 p(surface.vertices.point_ptr(v));
-	    p = p + nlGetVariable(v)*Nv[v];
+	    p = p + nlGetVariable(context, v)*Nv[v];
 	    for(index_t c=0; c<3; ++c) {
 		surface.vertices.point_ptr(v)[c] = p[c];
 	    }
@@ -603,7 +603,7 @@ namespace GEO {
 	    }
 	}
 	
-	nlDeleteContext(nlGetCurrent());
+	nlDeleteContext(context);
     }
 }
 

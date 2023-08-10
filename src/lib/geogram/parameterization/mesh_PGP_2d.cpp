@@ -240,22 +240,22 @@ namespace GEO {
 	    };
 
 	    static double Rotc2[4][4];
-
+		NLContext context = NULL;
 	    // Step 2: setup and solve linear system
 	    {
 
-		nlNewContext();
+		context	= nlNewContext();
 
-		nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
+		nlSolverParameteri(context, NL_LEAST_SQUARES, NL_TRUE);
 		nlSolverParameteri(
-		    NL_NB_VARIABLES, NLint(mesh->vertices.nb()*4)
+			context, NL_NB_VARIABLES, NLint(mesh->vertices.nb()*4)
 		);
 
 		if(use_direct_solver) {
 		    if(nlInitExtension("CHOLMOD")) {
-			nlSolverParameteri(NL_SOLVER, NL_CHOLMOD_EXT);
+			nlSolverParameteri(context, NL_SOLVER, NL_CHOLMOD_EXT);
 		    } else if(nlInitExtension("SUPERLU")) {
-			nlSolverParameteri(NL_SOLVER, NL_PERM_SUPERLU_EXT);
+			nlSolverParameteri(context, NL_SOLVER, NL_PERM_SUPERLU_EXT);
 		    } else {
 			Logger::warn("PGP")
 			    << "Could not initialize direct sovlver"
@@ -272,10 +272,10 @@ namespace GEO {
 		    // needed, because of the very high scaling on the
 		    // solution due to the varying modulus of the complex
 		    // numbers far away from the constrained point.
-		    nlSolverParameterd(NL_THRESHOLD, 1e-20);
+		    nlSolverParameterd(context, NL_THRESHOLD, 1e-20);
 		}
 		
-		nlBegin(NL_SYSTEM);
+		nlBegin(context, NL_SYSTEM);
 
 		if(constrain_hard_edges) {
 		    for(index_t c: mesh->facet_corners) {
@@ -287,28 +287,28 @@ namespace GEO {
 			index_t Rcc = Internal::inverse_R(R_fv[c]); 
 			if(cnstr & Internal::CNSTR_U) {
 			    if(Rcc == 0 || Rcc == 2) {
-				nlLockVariable(4*v);
-				nlSetVariable(4*v,1e4);
-				nlLockVariable(4*v+1);
-				nlSetVariable(4*v+1,0.0);
+				nlLockVariable(context, 4*v);
+				nlSetVariable(context, 4*v,1e4);
+				nlLockVariable(context, 4*v+1);
+				nlSetVariable(context, 4*v+1,0.0);
 			    } else {
-				nlLockVariable(4*v+2);
-				nlSetVariable(4*v+2,1e4);
-				nlLockVariable(4*v+3);
-				nlSetVariable(4*v+3,0.0);
+				nlLockVariable(context, 4*v+2);
+				nlSetVariable(context, 4*v+2,1e4);
+				nlLockVariable(context, 4*v+3);
+				nlSetVariable(context, 4*v+3,0.0);
 			    }
 			}
 			if(cnstr & Internal::CNSTR_V) {
 			    if(Rcc == 0 || Rcc == 2) {
-				nlLockVariable(4*v+2);
-				nlSetVariable(4*v+2,1e4);
-				nlLockVariable(4*v+3);
-				nlSetVariable(4*v+3,0.0);
+				nlLockVariable(context, 4*v+2);
+				nlSetVariable(context, 4*v+2,1e4);
+				nlLockVariable(context, 4*v+3);
+				nlSetVariable(context, 4*v+3,0.0);
 			    } else {
-				nlLockVariable(4*v);
-				nlSetVariable(4*v,1e4);
-				nlLockVariable(4*v+1);
-				nlSetVariable(4*v+1,0.0);
+				nlLockVariable(context, 4*v);
+				nlSetVariable(context, 4*v,1e4);
+				nlLockVariable(context, 4*v+1);
+				nlSetVariable(context, 4*v+1,0.0);
 			    }
 			}
 		    }
@@ -330,8 +330,8 @@ namespace GEO {
 				FOR(le,mesh->facets.nb_vertices(f_top)) {
 				    index_t v = mesh->facets.vertex(f_top,le);
 				    if(
-					nlVariableIsLocked(4*v) ||
-					nlVariableIsLocked(4*v+2)) {
+					nlVariableIsLocked(context, 4*v) ||
+					nlVariableIsLocked(context, 4*v+2)) {
 					++nb_locked;
 				    }
 				    index_t f_neigh =
@@ -350,23 +350,23 @@ namespace GEO {
 			    // connected component to make sure that
 			    // the minimum is well defined.
 			    if(nb_locked == 0) {
-				nlLockVariable(4*first_v);
-				nlSetVariable(4*first_v,1e4);
+				nlLockVariable(context, 4*first_v);
+				nlSetVariable(context, 4*first_v,1e4);
 		    
-				nlLockVariable(4*first_v+1);
-				nlSetVariable(4*first_v+1,0.0);
+				nlLockVariable(context, 4*first_v+1);
+				nlSetVariable(context, 4*first_v+1,0.0);
 				
-				nlLockVariable(4*first_v+2);
-				nlSetVariable(4*first_v+2,1e4);
+				nlLockVariable(context, 4*first_v+2);
+				nlSetVariable(context, 4*first_v+2,1e4);
 				
-				nlLockVariable(4*first_v+3);
-				nlSetVariable(4*first_v+3,0.0);
+				nlLockVariable(context, 4*first_v+3);
+				nlSetVariable(context, 4*first_v+3,0.0);
 			    }
 			}
 		    }
 		}
 		
-		nlBegin(NL_MATRIX);
+		nlBegin(context, NL_MATRIX);
 
 		//  This one will be replaced in-place
 		// with the rotation that encodes the
@@ -439,28 +439,28 @@ namespace GEO {
 			}
 			
 			for(index_t i=0; i<4; ++i) {
-			    nlBegin(NL_ROW);
+			    nlBegin(context, NL_ROW);
 			    for(index_t j=0; j<4; ++j) {
 				double a1 = Rot[Rc1][i][j];
 				if(a1 != 0.0) {
-				    nlCoefficient(v1*4+j, a1);
+				    nlCoefficient(context, v1*4+j, a1);
 				}
 			    }
 			    for(index_t j=0; j<4; ++j) {
 				double a2 = Rotc2[i][j];
 				if(a2 != 0.0) {
-				    nlCoefficient(v2*4+j, -a2);
+				    nlCoefficient(context, v2*4+j, -a2);
 				}
 			    }
-			    nlEnd(NL_ROW);
+			    nlEnd(context, NL_ROW);
 			}
 		    }
 		}
 		
-		nlEnd(NL_MATRIX);
-		nlEnd(NL_SYSTEM);
+		nlEnd(context, NL_MATRIX);
+		nlEnd(context, NL_SYSTEM);
 
-		nlSolve();
+		nlSolve(context);
 
 		Attribute<double> PGP;
 		PGP.bind_if_is_defined(mesh->facet_corners.attributes(),"PGP");
@@ -479,7 +479,7 @@ namespace GEO {
 		    for(index_t i=0; i<4; ++i) {
 			vars[i] = 0.0;
 			for(index_t j=0; j<4; ++j) {
-			    vars[i] += Rot[Rcc][i][j] * nlGetVariable(4*v+j);
+			    vars[i] += Rot[Rcc][i][j] * nlGetVariable(context, 4*v+j);
 			}
 		    }
 		    double s = sqrt(vars[0]*vars[0]+vars[1]*vars[1]);
@@ -549,7 +549,7 @@ namespace GEO {
 		    Internal::snap_tex_coord(U[c].y);
 		}
 		
-		nlDeleteContext(nlGetCurrent());
+		nlDeleteContext(context);
 	    }
 
 
@@ -562,18 +562,18 @@ namespace GEO {
 	    bool use_direct_solver, double max_scaling_correction
 	) {
 	    geo_assert(Bv.manager() == &mesh->vertices.attributes());
-	    nlNewContext();
+		NLContext context = nlNewContext();
 	    
-	    nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
+	    nlSolverParameteri(context, NL_LEAST_SQUARES, NL_TRUE);
 	    nlSolverParameteri(
-		NL_NB_VARIABLES, NLint(mesh->vertices.nb()*4)
+			context, NL_NB_VARIABLES, NLint(mesh->vertices.nb()*4)
 	    );
 	    
 	    if(use_direct_solver) {
 		if(nlInitExtension("CHOLMOD")) {
-		    nlSolverParameteri(NL_SOLVER, NL_CHOLMOD_EXT);
+		    nlSolverParameteri(context, NL_SOLVER, NL_CHOLMOD_EXT);
 		} else if(nlInitExtension("SUPERLU")) {
-		    nlSolverParameteri(NL_SOLVER, NL_PERM_SUPERLU_EXT);
+		    nlSolverParameteri(context, NL_SOLVER, NL_PERM_SUPERLU_EXT);
 		} else {
 		    Logger::warn("PGP")
 			<< "Could not initialize direct solver"
@@ -590,16 +590,16 @@ namespace GEO {
 		// needed, because of the very high scaling on the
 		// solution due to the varying modulus of the complex
 		// numbers far away from the constrained point.
-		nlSolverParameterd(NL_THRESHOLD, 1e-20);
+		nlSolverParameterd(context, NL_THRESHOLD, 1e-20);
 	    }
 
 	    const double locked_value = 1.0;
 	    const double solver_scale = 1e3;
 	    
-	    nlBegin(NL_SYSTEM);
-	    nlLockVariable(0u);
-	    nlSetVariable(0u,locked_value);
-	    nlBegin(NL_MATRIX);
+	    nlBegin(context, NL_SYSTEM);
+	    nlLockVariable(context, 0u);
+	    nlSetVariable(context, 0u,locked_value);
+	    nlBegin(context, NL_MATRIX);
 	    for(index_t f: mesh->facets) {
 
 		index_t va = mesh->facets.vertex(f,0);
@@ -661,20 +661,20 @@ namespace GEO {
 		) {
 		    std::cerr<<"bad triangle ..." << std::endl ;
 		
-		    nlBegin(NL_ROW);
-		    nlCoefficient(va,1e-2) ;
-		    nlCoefficient(vb,-1e-2) ;
-		    nlEnd(NL_ROW);
+		    nlBegin(context, NL_ROW);
+		    nlCoefficient(context, va,1e-2) ;
+		    nlCoefficient(context, vb,-1e-2) ;
+		    nlEnd(context, NL_ROW);
 
-		    nlBegin(NL_ROW);
-		    nlCoefficient(va,1e-2) ;
-		    nlCoefficient(vc,-1e-2) ;
-		    nlEnd(NL_ROW);
+		    nlBegin(context, NL_ROW);
+		    nlCoefficient(context, va,1e-2) ;
+		    nlCoefficient(context, vc,-1e-2) ;
+		    nlEnd(context, NL_ROW);
 
-		    nlBegin(NL_ROW);
-		    nlCoefficient(vc,1e-2) ;
-		    nlCoefficient(vb,-1e-2) ;
-		    nlEnd(NL_ROW);
+		    nlBegin(context, NL_ROW);
+		    nlCoefficient(context, vc,1e-2) ;
+		    nlCoefficient(context, vb,-1e-2) ;
+		    nlEnd(context, NL_ROW);
                 continue ;
             } else {
 
@@ -717,31 +717,31 @@ namespace GEO {
 		}
 
 
-		nlRowScaling(sqrt_area) ;
-		nlBegin(NL_ROW);
-		nlCoefficient(va, trg.TX(0)) ;
-		nlCoefficient(vb, trg.TX(1)) ;
-		nlCoefficient(vc, trg.TX(2)) ;
-		nlRightHandSide(solver_scale*b);
-		nlEnd(NL_ROW);
+		nlRowScaling(context, sqrt_area) ;
+		nlBegin(context, NL_ROW);
+		nlCoefficient(context, va, trg.TX(0)) ;
+		nlCoefficient(context, vb, trg.TX(1)) ;
+		nlCoefficient(context, vc, trg.TX(2)) ;
+		nlRightHandSide(context, solver_scale*b);
+		nlEnd(context, NL_ROW);
 
-		nlRowScaling(sqrt_area) ;
-		nlBegin(NL_ROW);
-		nlCoefficient(va, trg.TY(0)) ;
-		nlCoefficient(vb, trg.TY(1)) ;
-		nlCoefficient(vc, trg.TY(2)) ;
-		nlRightHandSide(solver_scale*-a);
-		nlEnd(NL_ROW);
+		nlRowScaling(context, sqrt_area) ;
+		nlBegin(context, NL_ROW);
+		nlCoefficient(context, va, trg.TY(0)) ;
+		nlCoefficient(context, vb, trg.TY(1)) ;
+		nlCoefficient(context, vc, trg.TY(2)) ;
+		nlRightHandSide(context, solver_scale*-a);
+		nlEnd(context, NL_ROW);
 	    }
-	    nlEnd(NL_MATRIX);
-	    nlEnd(NL_SYSTEM);
+	    nlEnd(context, NL_MATRIX);
+	    nlEnd(context, NL_SYSTEM);
 
-	    nlSolve();
+	    nlSolve(context);
 	    double min_val = Numeric::max_float64();
 	    double max_val = Numeric::min_float64();
 	    for(index_t v: mesh->vertices) {
 		CC[v] = ::exp(
-		    (nlGetVariable(v)-locked_value)/solver_scale)
+		    (nlGetVariable(context, v)-locked_value)/solver_scale)
 		;
 		min_val = std::min(min_val,CC[v]);				
 		max_val = std::max(max_val,CC[v]);
@@ -753,7 +753,7 @@ namespace GEO {
 		CC[v] = CC[v] / avg_val;
 		geo_clamp(CC[v], min_limit, max_limit);
 	    }
-	    nlDeleteContext(nlGetCurrent());
+	    nlDeleteContext(context);
 	}
 	
     } // namespace GlobalParam2d
