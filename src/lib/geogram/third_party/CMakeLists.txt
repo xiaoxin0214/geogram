@@ -50,7 +50,7 @@ aux_source_directories(SOURCES "Source Files"               .)
 aux_source_directories(SOURCES "Source Files\\libMeshb"     libMeshb/sources)
 aux_source_directories(SOURCES "Source Files\\rply"         rply)
 aux_source_directories(SOURCES "Source Files\\shewchuk"     shewchuk)
-aux_source_directories(SOURCES "Source Files\\zlib"         zlib)
+#aux_source_directories(SOURCES "Source Files\\zlib"         zlib)
 aux_source_directories(SOURCES "Source Files\\PoissonRecon" PoissonRecon)
 aux_source_directories(SOURCES "Source Files\\xatlas"       xatlas)
 

@@ -117,7 +117,15 @@ namespace GEO {
 )    
 #endif    
 
+#ifdef geo_cite
+#undef geo_cite
+#endif
+#define geo_cite(ref)
 
+#ifdef geo_cite_with_info
+#undef geo_cite_with_info
+#endif
+#define geo_cite_with_info(ref,info)
     
 }
 
