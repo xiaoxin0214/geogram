@@ -217,12 +217,12 @@ void HLBFGS_API HLBFGS_BUILD_HESSIAN_INFO(HESSIAN_MATRIX& m_hessian, int INFO[])
 //! HLBFGS functions
 void HLBFGS_API HLBFGS(
     int N, int M, double *x,
-    void EVALFUNC(int, double*, double*, double*, double*),
+    void EVALFUNC(int, double*, double*, double*, double*,void*),
     void EVALFUNC_H(int, double*, double*, double*, double*, HESSIAN_MATRIX&),
     void USER_DEFINED_HLBFGS_UPDATE_H(int, int, double*, double*, double*, int, double*, int[]),
-    void NEWITERATION(int, int, double*, double*, double*, double*),
+    void NEWITERATION(int, int, double*, double*, double*, double*,void*),
     double PARAMETERS[],
-    int INFO[]
+    int INFO[],void*obj
 );
 //////////////////////////////////////////////////////////////////////////
 

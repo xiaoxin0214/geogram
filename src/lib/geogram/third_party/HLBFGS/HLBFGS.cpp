@@ -279,11 +279,11 @@ void CONJUGATE_GRADIENT_UPDATE(int N, double *q, double *prev_q_update,
 
 //////////////////////////////////////////////////////////////////////////
 void HLBFGS(int N, int M, double *x, void EVALFUNC(int, double*, double*,
-                        double*, double*), void EVALFUNC_H(int, double*, double*, double*,
+                        double*, double*,void*), void EVALFUNC_H(int, double*, double*, double*,
                         double*, HESSIAN_MATRIX&), void USER_DEFINED_HLBFGS_UPDATE_H(int, int,
                         double*, double*, double*, int, double*, int[]), void NEWITERATION(int,
-                        int, double*, double*, double*, double*), double PARAMETERS[],
-                        int INFO[])
+                        int, double*, double*, double*, double*, void*), double PARAMETERS[],
+                        int INFO[],void*obj)
 {
         int T = INFO[6];
         if (N < 1 || M < 0 || T < 0 || INFO[4] < 1)
@@ -362,7 +362,7 @@ void HLBFGS(int N, int M, double *x, void EVALFUNC(int, double*, double*,
                 }
                 else if (INFO[2] == 0)
                 {
-                        EVALFUNC(N, x, 0, &f, g);
+                        EVALFUNC(N, x, 0, &f, g,obj);
                         INFO[1]++;
                 }
 
@@ -537,7 +537,7 @@ void HLBFGS(int N, int M, double *x, void EVALFUNC(int, double*, double*,
                         blinesearch = (info == -1);
                         if (blinesearch)
                         {
-                                EVALFUNC(N, x, prev_x, &f, g);
+                                EVALFUNC(N, x, prev_x, &f, g,obj);
                                 INFO[1]++;
                         }
 
@@ -551,7 +551,7 @@ void HLBFGS(int N, int M, double *x, void EVALFUNC(int, double*, double*,
 
                 gnorm = HLBFGS_DNRM2(N, g);
                 INFO[2]++;
-                NEWITERATION(INFO[2], INFO[1], x, &f, g, &gnorm);
+                NEWITERATION(INFO[2], INFO[1], x, &f, g, &gnorm,obj);
                 double xnorm = HLBFGS_DNRM2(N, x);
                 xnorm = 1 > xnorm ? 1 : xnorm;
                 rkeep[2] = gnorm;

@@ -45,13 +45,14 @@
 #include <geogram/basic/progress.h>
 #include <geogram/basic/argused.h>
 #include <geogram/bibliography/bibliography.h>
+#include <geogram\third_party\HLBFGS\HLBFGS.h>
 
 /****************************************************************************/
 
 namespace GEO {
 
-    CentroidalVoronoiTesselation*
-    CentroidalVoronoiTesselation::instance_ = nullptr;
+    /*CentroidalVoronoiTesselation*
+    CentroidalVoronoiTesselation::instance_ = nullptr;*/
 
     CentroidalVoronoiTesselation::CentroidalVoronoiTesselation(
         Mesh* mesh, coord_index_t dim, const std::string& delaunay
@@ -66,8 +67,8 @@ namespace GEO {
         delaunay_ = Delaunay::create(dimension_, delaunay);
         RVD_ = RestrictedVoronoiDiagram::create(delaunay_, mesh);
         mesh_ = mesh;
-        geo_assert(instance_ == nullptr);
-        instance_ = this;
+        //geo_assert(instance_ == nullptr);
+        //instance_ = this;
         progress_ = nullptr;
 	geo_cite("Lloyd82leastsquares");
 	geo_cite("Du:1999:CVT:340312.340319");
@@ -94,8 +95,8 @@ namespace GEO {
             );
         }
         mesh_ = mesh;
-        geo_assert(instance_ == nullptr);
-        instance_ = this;
+        //geo_assert(instance_ == nullptr);
+        //instance_ = this;
         progress_ = nullptr;
 	geo_cite("Lloyd82leastsquares");
 	geo_cite("Du:1999:CVT:340312.340319");
@@ -103,7 +104,7 @@ namespace GEO {
     }
 
     CentroidalVoronoiTesselation::~CentroidalVoronoiTesselation() {
-        instance_ = nullptr;
+        //instance_ = nullptr;
     }
 
     bool CentroidalVoronoiTesselation::compute_initial_sampling(
@@ -269,6 +270,56 @@ namespace GEO {
         mesh->cells.assign_tet_mesh(3, vertices_R3, tets, true);
     }
 
+	void funcgrad_callback(
+		int N, double* x, double* prev_x, double* f, double* g,void*object
+	) {
+		GEO::geo_argused(prev_x);
+		CentroidalVoronoiTesselation*p = (CentroidalVoronoiTesselation*)object;
+		p->funcgrad((index_t)N, x, *f, g);
+	}
+
+	void newiteration_callback(
+		int iter, int call_iter, double* x, double* f, double* g,
+		double* gnorm, void*object
+	) {
+		CentroidalVoronoiTesselation*p = (CentroidalVoronoiTesselation*)object;
+		p->newiteration();
+	}
+
+	void optimize(double* x,int maxIter,int n,int m,void*object) {
+
+		double parameter[20];
+		int hlbfgs_info[20];
+
+		// initialize parameters and infos
+		INIT_HLBFGS(parameter, hlbfgs_info);
+		hlbfgs_info[3] = 0; // determines whether we use m1qn3
+		hlbfgs_info[4] = maxIter;  // max iterations
+		hlbfgs_info[5] = 0;
+		hlbfgs_info[10] = 0; // determines whether we use cg
+		parameter[5] = 0; // disabled
+		parameter[6] = 0.0;
+
+		// initialize parameters and infos
+		//INIT_HLBFGS(parameter, hlbfgs_info);
+		//hlbfgs_info[4] = maxIter;  // max iterations
+		//hlbfgs_info[6] = 0;  // update interval of hessian
+		//hlbfgs_info[7] = 1;   // 0: without hessian, 1: with accurate hessian
+
+		HLBFGS(
+			(int)n,
+			(int)m,
+			x,
+			funcgrad_callback,
+			nullptr,
+			HLBFGS_UPDATE_Hessian,
+			newiteration_callback,
+			parameter,
+			hlbfgs_info,
+			object
+		);
+	}
+
     void CentroidalVoronoiTesselation::Newton_iterations(
         index_t nb_iter, index_t m
     ) {
@@ -292,15 +343,17 @@ namespace GEO {
         cur_iter_ = 0;
         nb_iter_ = nb_iter;
 
-        optimizer->set_epsg(0.0);
-        optimizer->set_epsf(0.0);
-        optimizer->set_epsx(0.0);
-        optimizer->set_newiteration_callback(newiteration_CB);
-        optimizer->set_funcgrad_callback(funcgrad_CB);
-        optimizer->set_N(n);
-        optimizer->set_M(m);
-        optimizer->set_max_iter(nb_iter);
-        optimizer->optimize(points_.data());
+        //optimizer->set_epsg(0.0);
+        //optimizer->set_epsf(0.0);
+        //optimizer->set_epsx(0.0);
+        //optimizer->set_newiteration_callback(newiteration_CB);
+        //optimizer->set_funcgrad_callback(funcgrad_CB);
+        //optimizer->set_N(n);
+        //optimizer->set_M(m);
+        //optimizer->set_max_iter(nb_iter);
+        //optimizer->optimize(points_.data());
+
+		optimize(points_.data(), nb_iter,n,m,this);
 
         simplex_func_.reset();
         progress_ = nullptr;
@@ -344,22 +397,22 @@ namespace GEO {
         cur_iter_++;
     }
 
-    void CentroidalVoronoiTesselation::funcgrad_CB(
-        index_t n, double* x, double& f, double* g
-    ) {
-        instance_->funcgrad(n, x, f, g);
-    }
+    //void CentroidalVoronoiTesselation::funcgrad_CB(
+    //    index_t n, double* x, double& f, double* g
+    //) {
+    //    instance_->funcgrad(n, x, f, g);
+    //}
 
-    void CentroidalVoronoiTesselation::newiteration_CB(
-        index_t n, const double* x, double f, const double* g, double gnorm
-    ) {
-        geo_argused(n);
-        geo_argused(x);
-        geo_argused(f);
-        geo_argused(g);
-        geo_argused(gnorm);
-        instance_->newiteration();
-    }
+    //void CentroidalVoronoiTesselation::newiteration_CB(
+    //    index_t n, const double* x, double f, const double* g, double gnorm
+    //) {
+    //    geo_argused(n);
+    //    geo_argused(x);
+    //    geo_argused(f);
+    //    geo_argused(g);
+    //    geo_argused(gnorm);
+    //    instance_->newiteration();
+    //}
 
     void CentroidalVoronoiTesselation::compute_R3_embedding() {
         index_t nb_points = index_t(points_.size() / dimension_);

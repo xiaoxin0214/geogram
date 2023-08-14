@@ -248,10 +248,10 @@ namespace GEO {
          * \note Most users will not need to use this function.
          * \pre There is no current CentroidalVoronoiTesselation.
          */
-        void make_current() {
-            geo_assert(instance_ == nullptr);
-            instance_ = this;
-        }
+        //void make_current() {
+            //geo_assert(instance_ == nullptr);
+            //instance_ = this;
+        //}
 
         /**
          * \brief Resets the current CentroidalVoronoiTesselation to nullptr.
@@ -262,10 +262,10 @@ namespace GEO {
          * \note Most users will not need to use this function.
          * \pre This CentroidalVoronoiTesselation is the current one.
          */
-        void done_current() {
-            geo_assert(instance_ == this);
-            instance_ = nullptr;
-        }
+        //void done_current() {
+            //geo_assert(instance_ == this);
+            //instance_ = nullptr;
+        //}
 
     public:
         /**
@@ -276,9 +276,9 @@ namespace GEO {
          * \param[out] f current value of the objective function
          * \param[out] g gradient of the objective function
          */
-        static void funcgrad_CB(
-            index_t n, double* x, double& f, double* g
-        );
+        //static void funcgrad_CB(
+        //    index_t n, double* x, double& f, double* g
+        //);
 
         /**
          * \brief Callback for the numerical solver.
@@ -289,9 +289,9 @@ namespace GEO {
          * \param[in] g gradient of the objective function
          * \param[in] gnorm norm of the gradient of the objective function
          */
-        static void newiteration_CB(
-            index_t n, const double* x, double f, const double* g, double gnorm
-        );
+        //static void newiteration_CB(
+        //    index_t n, const double* x, double f, const double* g, double gnorm
+        //);
 
         /**
          * \brief Sets a client for the progress bars.
@@ -408,7 +408,7 @@ namespace GEO {
             point_is_locked_.clear();
         }
 
-    protected:
+    public:
         /**
          * \brief Callback for the numerical solver.
          * \details Updates the progress bar.
@@ -439,7 +439,7 @@ namespace GEO {
          */
         void compute_R3_embedding();
 
-        static CentroidalVoronoiTesselation* instance_;
+        //static CentroidalVoronoiTesselation* instance_;
         bool show_iterations_;
         coord_index_t dimension_;
         Delaunay_var delaunay_;

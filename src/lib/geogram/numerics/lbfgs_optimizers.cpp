@@ -103,7 +103,7 @@ namespace GEO {
          */
         static void HLBFGS_newiteration_callback(
             int iter, int call_iter, double* x, double* f, double* g,
-            double* gnorm
+            double* gnorm,void*obj
         ) {
             GEO::geo_argused(iter);
             GEO::geo_argused(call_iter);
@@ -120,7 +120,7 @@ namespace GEO {
          * \param[out] g gradient of the function
          */
         static void HLBFGS_funcgrad_callback(
-            int N, double* x, double* prev_x, double* f, double* g
+            int N, double* x, double* prev_x, double* f, double* g,void*obj
         ) {
             GEO::geo_argused(prev_x);
             (* funcgrad_callback_)((index_t) N, x, * f, g);
@@ -191,7 +191,7 @@ namespace GEO {
             HLBFGS_UPDATE_Hessian,
             OptimizerConfig::HLBFGS_newiteration_callback,
             parameter,
-            hlbfgs_info
+            hlbfgs_info,nullptr
         );
     }
 
@@ -254,7 +254,7 @@ namespace GEO {
             HLBFGS_UPDATE_Hessian,
             OptimizerConfig::HLBFGS_newiteration_callback,
             parameter,
-            hlbfgs_info
+            hlbfgs_info,nullptr
         );
     }
 }
